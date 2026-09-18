@@ -1,0 +1,289 @@
+/**
+ * Restore strategy helpers for workbook recovery snapshots.
+ */
+
+import type { RecoveryWorkbookScope } from "../recovery-scope.js";
+import type {
+  AppendChartRecoverySnapshotArgs,
+  AppendCommentThreadRecoverySnapshotArgs,
+  AppendConditionalFormatRecoverySnapshotArgs,
+  AppendFormatCellsRecoverySnapshotArgs,
+  AppendModifyStructureRecoverySnapshotArgs,
+  AppendWorkbookRecoverySnapshotArgs,
+  RestoreWorkbookRecoverySnapshotResult,
+  WorkbookRecoverySnapshot,
+  WorkbookRecoverySnapshotKind,
+} from "../recovery-log.js";
+import type {
+  RecoveryChartApplyResult,
+  RecoveryChartState,
+  RecoveryCommentThreadState,
+  RecoveryConditionalFormatCaptureResult,
+  RecoveryConditionalFormatRule,
+  RecoveryFormatRangeState,
+  RecoveryModifyStructureState,
+} from "../recovery-states.js";
+
+interface WorkbookRangeState {
+  values: unknown[][];
+  formulas: unknown[][];
+}
+
+interface CountChangedCellsArgs {
+  beforeValues: unknown[][];
+  beforeFormulas: unknown[][];
+  afterValues: unknown[][];
+  afterFormulas: unknown[][];
+}
+
+export interface RestoreWorkbookRecoverySnapshotDependencies {
+  applySnapshot: (address: string, values: unknown[][]) => Promise<WorkbookRangeState>;
+  applyFormatCellsSnapshot: (
+    address: string,
+    state: RecoveryFormatRangeState,
+  ) => Promise<RecoveryFormatRangeState>;
+  applyModifyStructureSnapshot: (
+    address: string,
+    state: RecoveryModifyStructureState,
+  ) => Promise<RecoveryModifyStructureState>;
+  applyConditionalFormatSnapshot: (
+    address: string,
+    rules: RecoveryConditionalFormatRule[],
+  ) => Promise<RecoveryConditionalFormatCaptureResult>;
+  applyCommentThreadSnapshot: (
+    address: string,
+    state: RecoveryCommentThreadState,
+  ) => Promise<RecoveryCommentThreadState>;
+  applyChartSnapshot: (
+    address: string,
+    state: RecoveryChartState,
+  ) => Promise<RecoveryChartApplyResult>;
+  appendRangeSnapshot: (
+    args: AppendWorkbookRecoverySnapshotArgs,
+    scope: RecoveryWorkbookScope,
+  ) => Promise<WorkbookRecoverySnapshot | null>;
+  appendFormatCellsSnapshot: (
+    args: AppendFormatCellsRecoverySnapshotArgs,
+    scope: RecoveryWorkbookScope,
+  ) => Promise<WorkbookRecoverySnapshot | null>;
+  appendModifyStructureSnapshot: (
+    args: AppendModifyStructureRecoverySnapshotArgs,
+    scope: RecoveryWorkbookScope,
+  ) => Promise<WorkbookRecoverySnapshot | null>;
+  appendConditionalFormatSnapshot: (
+    args: AppendConditionalFormatRecoverySnapshotArgs,
+    scope: RecoveryWorkbookScope,
+  ) => Promise<WorkbookRecoverySnapshot | null>;
+  appendCommentThreadSnapshot: (
+    args: AppendCommentThreadRecoverySnapshotArgs,
+    scope: RecoveryWorkbookScope,
+  ) => Promise<WorkbookRecoverySnapshot | null>;
+  appendChartSnapshot: (
+    args: AppendChartRecoverySnapshotArgs,
+    scope: RecoveryWorkbookScope,
+  ) => Promise<WorkbookRecoverySnapshot | null>;
+  toRestoreValues: (values: unknown[][], formulas: unknown[][]) => unknown[][];
+  countChangedCells: (args: CountChangedCellsArgs) => number;
+}
+
+export interface RestoreWorkbookRecoverySnapshotArgs {
+  snapshot: WorkbookRecoverySnapshot;
+  /** Resolved once by the caller; the inverse checkpoint is appended under the same scope. */
+  scope: RecoveryWorkbookScope;
+  dependencies: RestoreWorkbookRecoverySnapshotDependencies;
+}
+
+function resolveSnapshotKind(snapshot: WorkbookRecoverySnapshot): WorkbookRecoverySnapshotKind {
+  return snapshot.snapshotKind ?? "range_values";
+}
+
+function assertSnapshotWorkbookIdentity(snapshot: WorkbookRecoverySnapshot, scope: RecoveryWorkbookScope): void {
+  if (!snapshot.workbookId) {
+    throw new Error("Snapshot is missing workbook identity and cannot be restored safely.");
+  }
+
+  if (snapshot.workbookId !== scope.workbookId) {
+    throw new Error("Snapshot belongs to a different workbook.");
+  }
+}
+
+export async function restoreWorkbookRecoverySnapshot(
+  args: RestoreWorkbookRecoverySnapshotArgs,
+): Promise<RestoreWorkbookRecoverySnapshotResult> {
+  const { snapshot, scope, dependencies } = args;
+
+  assertSnapshotWorkbookIdentity(snapshot, scope);
+
+  const snapshotKind = resolveSnapshotKind(snapshot);
+
+  if (snapshotKind === "format_cells_state") {
+    const targetState = snapshot.formatRangeState;
+    if (!targetState) {
+      throw new Error("Format backup data is missing.");
+    }
+
+    const currentState = await dependencies.applyFormatCellsSnapshot(snapshot.address, targetState);
+    const inverseSnapshot = await dependencies.appendFormatCellsSnapshot(
+      {
+        toolName: "restore_snapshot",
+        toolCallId: `restore:${snapshot.id}`,
+        address: snapshot.address,
+        changedCount: snapshot.changedCount,
+        formatRangeState: currentState,
+        restoredFromSnapshotId: snapshot.id,
+      },
+      scope,
+    );
+
+    return {
+      restoredSnapshotId: snapshot.id,
+      inverseSnapshotId: inverseSnapshot?.id ?? null,
+      address: snapshot.address,
+      changedCount: snapshot.changedCount,
+    };
+  }
+
+  if (snapshotKind === "modify_structure_state") {
+    const targetState = snapshot.modifyStructureState;
+    if (!targetState) {
+      throw new Error("Structure backup data is missing.");
+    }
+
+    const currentState = await dependencies.applyModifyStructureSnapshot(snapshot.address, targetState);
+    const inverseSnapshot = await dependencies.appendModifyStructureSnapshot(
+      {
+        toolName: "restore_snapshot",
+        toolCallId: `restore:${snapshot.id}`,
+        address: snapshot.address,
+        changedCount: snapshot.changedCount,
+        modifyStructureState: currentState,
+        restoredFromSnapshotId: snapshot.id,
+      },
+      scope,
+    );
+
+    return {
+      restoredSnapshotId: snapshot.id,
+      inverseSnapshotId: inverseSnapshot?.id ?? null,
+      address: snapshot.address,
+      changedCount: snapshot.changedCount,
+    };
+  }
+
+  if (snapshotKind === "conditional_format_rules") {
+    const rules = snapshot.conditionalFormatRules ?? [];
+    const currentState = await dependencies.applyConditionalFormatSnapshot(snapshot.address, rules);
+
+    if (!currentState.supported) {
+      throw new Error(currentState.reason ?? "Conditional format backup cannot be restored safely.");
+    }
+
+    const inverseSnapshot = await dependencies.appendConditionalFormatSnapshot(
+      {
+        toolName: "restore_snapshot",
+        toolCallId: `restore:${snapshot.id}`,
+        address: snapshot.address,
+        changedCount: snapshot.changedCount,
+        cellCount: snapshot.cellCount,
+        conditionalFormatRules: currentState.rules,
+        restoredFromSnapshotId: snapshot.id,
+      },
+      scope,
+    );
+
+    return {
+      restoredSnapshotId: snapshot.id,
+      inverseSnapshotId: inverseSnapshot?.id ?? null,
+      address: snapshot.address,
+      changedCount: snapshot.changedCount,
+    };
+  }
+
+  if (snapshotKind === "comment_thread") {
+    const targetState = snapshot.commentThreadState;
+    if (!targetState) {
+      throw new Error("Comment backup data is missing.");
+    }
+
+    const currentState = await dependencies.applyCommentThreadSnapshot(snapshot.address, targetState);
+    const inverseSnapshot = await dependencies.appendCommentThreadSnapshot(
+      {
+        toolName: "restore_snapshot",
+        toolCallId: `restore:${snapshot.id}`,
+        address: snapshot.address,
+        changedCount: snapshot.changedCount,
+        commentThreadState: currentState,
+        restoredFromSnapshotId: snapshot.id,
+      },
+      scope,
+    );
+
+    return {
+      restoredSnapshotId: snapshot.id,
+      inverseSnapshotId: inverseSnapshot?.id ?? null,
+      address: snapshot.address,
+      changedCount: snapshot.changedCount,
+    };
+  }
+
+  if (snapshotKind === "chart_state") {
+    const targetState = snapshot.chartState;
+    if (!targetState) {
+      throw new Error("Chart backup data is missing.");
+    }
+
+    const applied = await dependencies.applyChartSnapshot(snapshot.address, targetState);
+    const inverseSnapshot = applied.state
+      ? await dependencies.appendChartSnapshot(
+        {
+          toolName: "restore_snapshot",
+          toolCallId: `restore:${snapshot.id}`,
+          // A restore can rename the chart, so the inverse must be stored at
+          // the post-restore identity for the rollback backup to resolve.
+          address: applied.address,
+          changedCount: snapshot.changedCount,
+          chartState: applied.state,
+          restoredFromSnapshotId: snapshot.id,
+        },
+        scope,
+      )
+      : null;
+
+    return {
+      restoredSnapshotId: snapshot.id,
+      inverseSnapshotId: inverseSnapshot?.id ?? null,
+      address: snapshot.address,
+      changedCount: snapshot.changedCount,
+    };
+  }
+
+  const restoreValues = dependencies.toRestoreValues(snapshot.beforeValues, snapshot.beforeFormulas);
+  const currentState = await dependencies.applySnapshot(snapshot.address, restoreValues);
+
+  const inverseChangedCount = dependencies.countChangedCells({
+    beforeValues: currentState.values,
+    beforeFormulas: currentState.formulas,
+    afterValues: snapshot.beforeValues,
+    afterFormulas: snapshot.beforeFormulas,
+  });
+
+  const inverseSnapshot = await dependencies.appendRangeSnapshot(
+    {
+      toolName: "restore_snapshot",
+      toolCallId: `restore:${snapshot.id}`,
+      address: snapshot.address,
+      changedCount: inverseChangedCount,
+      beforeValues: currentState.values,
+      beforeFormulas: currentState.formulas,
+      restoredFromSnapshotId: snapshot.id,
+    },
+    scope,
+  );
+
+  return {
+    restoredSnapshotId: snapshot.id,
+    inverseSnapshotId: inverseSnapshot?.id ?? null,
+    address: snapshot.address,
+    changedCount: inverseChangedCount,
+  };
+}

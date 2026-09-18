@@ -1,0 +1,248 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+
+import {
+  checkApiKeyFormat,
+  clearWebSearchApiKey,
+  getApiKeyForProvider,
+  isApiKeyRequired,
+  loadWebSearchProviderConfig,
+  migrateLegacyWebSearchApiKeysToConnectionStore,
+  saveWebSearchApiKey,
+  saveWebSearchProvider,
+  WEB_SEARCH_CONNECTION_ID,
+  WEB_SEARCH_PROVIDER_ENDPOINT_HOSTS,
+  WEB_SEARCH_SERPER_API_KEY_SETTING_KEY,
+  WEB_SEARCH_BRAVE_API_KEY_SETTING_KEY,
+  type WebSearchConfigStore,
+} from "../src/tools/web-search-config.ts";
+import {
+  CONNECTION_STORE_KEY,
+  loadConnectionStoreDocument,
+} from "../src/connections/store.ts";
+
+class MemorySettingsStore implements WebSearchConfigStore {
+  protected readonly values = new Map<string, unknown>();
+
+  get(key: string): Promise<unknown> {
+    return Promise.resolve(this.values.has(key) ? this.values.get(key) ?? null : null);
+  }
+
+  set(key: string, value: unknown): Promise<void> {
+    this.values.set(key, value);
+    return Promise.resolve();
+  }
+
+  delete(key: string): Promise<void> {
+    this.values.delete(key);
+    return Promise.resolve();
+  }
+
+}
+
+class TransientReadSettings extends MemorySettingsStore {
+  private failNextRead = false;
+
+  armReadFailure(): void {
+    this.failNextRead = true;
+  }
+
+  override get(key: string): Promise<unknown> {
+    if (this.failNextRead) {
+      this.failNextRead = false;
+      return Promise.reject(new Error("transient web-search read failure"));
+    }
+    return super.get(key);
+  }
+}
+
+void test("web-search provider inference by configured key", async () => {
+  const rows = [
+    { provider: "jina" as const, key: undefined },
+    { provider: "serper" as const, key: "sp-legacy" },
+    { provider: "brave" as const, key: "br-legacy" },
+    { provider: "firecrawl" as const, key: "fc-legacy" },
+  ];
+
+  for (const row of rows) {
+    const settings = new MemorySettingsStore();
+    if (row.key !== undefined) await saveWebSearchApiKey(settings, row.provider, row.key);
+
+    const config = await loadWebSearchProviderConfig(settings);
+    assert.equal(config.provider, row.provider);
+    assert.equal(getApiKeyForProvider(config), row.key);
+  }
+});
+
+void test("a failed web-search key update preserves existing configuration and can be retried", async () => {
+  const settings = new TransientReadSettings();
+  await settings.set(CONNECTION_STORE_KEY, {
+    version: 1,
+    items: {
+      sibling: { status: "connected", secrets: { token: "keep" } },
+      [WEB_SEARCH_CONNECTION_ID]: {
+        status: "connected",
+        secrets: { brave_api_key: "br-existing" },
+      },
+    },
+  });
+  settings.armReadFailure();
+
+  await assert.rejects(
+    () => saveWebSearchApiKey(settings, "serper", "sp-new"),
+    /transient web-search read failure/u,
+  );
+  const unchanged = await loadWebSearchProviderConfig(settings);
+  assert.equal(getApiKeyForProvider(unchanged, "serper"), undefined);
+  assert.equal(getApiKeyForProvider(unchanged, "brave"), "br-existing");
+
+  await saveWebSearchApiKey(settings, "serper", "sp-new");
+  const reloaded = await loadWebSearchProviderConfig(settings);
+  assert.equal(getApiKeyForProvider(reloaded, "brave"), "br-existing");
+  assert.equal(getApiKeyForProvider(reloaded, "serper"), "sp-new");
+  assert.equal((await loadConnectionStoreDocument(settings)).sibling?.secrets?.token, "keep");
+});
+
+void test("web search config stores provider-specific api keys", async () => {
+  const settings = new MemorySettingsStore();
+
+  await saveWebSearchProvider(settings, "tavily");
+  await saveWebSearchApiKey(settings, "tavily", "tv-123");
+  await saveWebSearchApiKey(settings, "brave", "br-123");
+
+  const config = await loadWebSearchProviderConfig(settings);
+
+  assert.equal(config.provider, "tavily");
+  assert.equal(getApiKeyForProvider(config), "tv-123");
+  assert.equal(getApiKeyForProvider(config, "brave"), "br-123");
+});
+
+void test("web search API keys remain available after configuration reload", async () => {
+  const settings = new MemorySettingsStore();
+
+  await saveWebSearchApiKey(settings, "serper", "sp-123");
+
+  const reloaded = await loadWebSearchProviderConfig(settings);
+  assert.equal(getApiKeyForProvider(reloaded, "serper"), "sp-123");
+});
+
+void test("web search config reads legacy key when connection store key is absent", async () => {
+  const settings = new MemorySettingsStore();
+
+  await settings.set(WEB_SEARCH_BRAVE_API_KEY_SETTING_KEY, "br-legacy");
+
+  const config = await loadWebSearchProviderConfig(settings);
+  assert.equal(getApiKeyForProvider(config, "brave"), "br-legacy");
+});
+
+void test("legacy web search keys migrate into connection store", async () => {
+  const settings = new MemorySettingsStore();
+
+  await settings.set(WEB_SEARCH_SERPER_API_KEY_SETTING_KEY, "sp-legacy");
+  await settings.set(WEB_SEARCH_BRAVE_API_KEY_SETTING_KEY, "br-legacy");
+
+  const migrated = await migrateLegacyWebSearchApiKeysToConnectionStore(settings);
+  assert.equal(migrated, true);
+
+  const reloaded = await loadWebSearchProviderConfig(settings);
+  assert.equal(getApiKeyForProvider(reloaded, "serper"), "sp-legacy");
+  assert.equal(getApiKeyForProvider(reloaded, "brave"), "br-legacy");
+  assert.equal(await migrateLegacyWebSearchApiKeysToConnectionStore(settings), false);
+});
+
+void test("legacy migration does not overwrite existing connection-store keys", async () => {
+  const settings = new MemorySettingsStore();
+
+  await saveWebSearchApiKey(settings, "serper", "sp-new");
+  await settings.set(WEB_SEARCH_SERPER_API_KEY_SETTING_KEY, "sp-legacy");
+
+  const migrated = await migrateLegacyWebSearchApiKeysToConnectionStore(settings);
+  assert.equal(migrated, true);
+
+  const config = await loadWebSearchProviderConfig(settings);
+  assert.equal(getApiKeyForProvider(config, "serper"), "sp-new");
+});
+
+void test("all providers require an API key", () => {
+  assert.equal(isApiKeyRequired("jina"), true);
+  assert.equal(isApiKeyRequired("firecrawl"), true);
+  assert.equal(isApiKeyRequired("serper"), true);
+  assert.equal(isApiKeyRequired("tavily"), true);
+  assert.equal(isApiKeyRequired("brave"), true);
+});
+
+void test("web search config stores firecrawl api key", async () => {
+  const settings = new MemorySettingsStore();
+
+  await saveWebSearchProvider(settings, "firecrawl");
+  await saveWebSearchApiKey(settings, "firecrawl", "fc_test_key");
+
+  const config = await loadWebSearchProviderConfig(settings);
+
+  assert.equal(config.provider, "firecrawl");
+  assert.equal(getApiKeyForProvider(config, "firecrawl"), "fc_test_key");
+});
+
+void test("web search config stores jina api key", async () => {
+  const settings = new MemorySettingsStore();
+
+  await saveWebSearchProvider(settings, "jina");
+  await saveWebSearchApiKey(settings, "jina", "jina_test_key");
+
+  const config = await loadWebSearchProviderConfig(settings);
+
+  assert.equal(config.provider, "jina");
+  assert.equal(getApiKeyForProvider(config, "jina"), "jina_test_key");
+});
+
+void test("web search config clears only the selected provider key", async () => {
+  const settings = new MemorySettingsStore();
+
+  await saveWebSearchApiKey(settings, "serper", "sp-123");
+  await saveWebSearchApiKey(settings, "brave", "br-123");
+  await clearWebSearchApiKey(settings, "serper");
+
+  const config = await loadWebSearchProviderConfig(settings);
+
+  assert.equal(getApiKeyForProvider(config, "serper"), undefined);
+  assert.equal(getApiKeyForProvider(config, "brave"), "br-123");
+});
+
+// ── checkApiKeyFormat ────────────────────────────────────
+
+void test("API-key format policy accepts and diagnoses representative keys", () => {
+  const rows = [
+    { provider: "jina" as const, key: "jina_abc123defXYZ456", diagnosis: null },
+    { provider: "firecrawl" as const, key: "fc-abc123def456", diagnosis: null },
+    { provider: "tavily" as const, key: "tvly-abc123def456", diagnosis: null },
+    { provider: "serper" as const, key: "abc123def456ghi789xyz0", diagnosis: null },
+    { provider: "brave" as const, key: "BSAabc123def456", diagnosis: null },
+    { provider: "jina" as const, key: "", diagnosis: /empty/i },
+    { provider: "jina" as const, key: "   ", diagnosis: /empty/i },
+    { provider: "jina" as const, key: "jina_abc def", diagnosis: /spaces/i },
+    { provider: "jina" as const, key: "jina_abc\ndef", diagnosis: /spaces/i },
+    { provider: "serper" as const, key: "abc", diagnosis: /short/i },
+    { provider: "jina" as const, key: "jina_abcdef1234567890jina_abcdef1234567890", diagnosis: /repeated long segment/i },
+    { provider: "jina" as const, key: "sk-abc123def456abc123", diagnosis: /jina_/i },
+    { provider: "firecrawl" as const, key: "jina_abc123def456abc1", diagnosis: /fc-/i },
+    { provider: "tavily" as const, key: "sk-abc123def456abc123", diagnosis: /tvly-/i },
+    { provider: "serper" as const, key: "anyformat1234567890", diagnosis: null },
+    { provider: "brave" as const, key: "anyformat1234567890", diagnosis: null },
+  ];
+
+  for (const row of rows) {
+    const result = checkApiKeyFormat(row.provider, row.key);
+    if (row.diagnosis === null) assert.equal(result, null, row.provider);
+    else assert.match(result ?? "", row.diagnosis, row.provider);
+  }
+});
+
+void test("policy: web search provider endpoints expose stable host list", () => {
+  assert.deepEqual(WEB_SEARCH_PROVIDER_ENDPOINT_HOSTS, [
+    "s.jina.ai",
+    "api.firecrawl.dev",
+    "google.serper.dev",
+    "api.tavily.com",
+    "api.search.brave.com",
+  ]);
+});

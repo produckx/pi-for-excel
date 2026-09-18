@@ -1,0 +1,44 @@
+version: 2
+
+updates:
+  # Keep npm dependencies fresh (security + bugfixes).
+  # Dependabot only allows one npm update config per directory/target-branch, so
+  # Pi stack grouping and general npm grouping must live in the same entry.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    ignore:
+      - dependency-name: "eslint"
+        update-types:
+          - "version-update:semver-major"
+      # typebox is pinned to the exact version @earendil-works/pi-ai depends on
+      # so one copy ships (scripts/check-pi-deps-lockstep.mjs fails otherwise).
+      # It moves only when pi-ai moves, in the pi-stack bump.
+      - dependency-name: "typebox"
+    groups:
+      pi-stack:
+        patterns:
+          - "@earendil-works/pi-ai"
+          - "@earendil-works/pi-web-ui"
+          - "@earendil-works/pi-agent-core"
+        update-types:
+          - "minor"
+          - "patch"
+      npm-minor-and-patch:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "@earendil-works/pi-ai"
+          - "@earendil-works/pi-web-ui"
+          - "@earendil-works/pi-agent-core"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Keep GitHub Actions versions fresh
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
