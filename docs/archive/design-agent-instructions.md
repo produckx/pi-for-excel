@@ -1,6 +1,6 @@
 # Design: Agent Instructions (AGENTS.md equivalent)
 
-> **Issue:** [#30](https://github.com/tmustier/pi-for-excel/issues/30)
+> **Issue:** [#30](https://github.com/produckx/pi-for-excel/issues/30)
 > **Status:** Draft
 > **Last updated:** 2026-02-10
 
@@ -336,6 +336,6 @@ Acceptable for all supported models.
 
 ## Related Issues
 
-- [#1](https://github.com/tmustier/pi-for-excel/issues/1) — Conventions storage/exposure (workbook instructions may partially supersede hardcoded conventions)
-- [#14](https://github.com/tmustier/pi-for-excel/issues/14) — Agent interface design (instructions are part of context strategy)
-- [#20](https://github.com/tmustier/pi-for-excel/issues/20) — Auto-compaction (instructions add to per-turn token cost)
+- [#1](https://github.com/produckx/pi-for-excel/issues/1) — Conventions storage/exposure (workbook instructions may partially supersede hardcoded conventions)
+- [#14](https://github.com/produckx/pi-for-excel/issues/14) — Agent interface design (instructions are part of context strategy)
+- [#20](https://github.com/produckx/pi-for-excel/issues/20) — Auto-compaction (instructions add to per-turn token cost)

@@ -65,7 +65,7 @@ export const PROXY_HEALTH_HEADER = "x-pi-for-excel-proxy";
 export const CODEX_WEBSOCKET_BRIDGE_HEADER = "x-pi-for-excel-codex-websocket-bridge";
 
 export const PROXY_HELPER_DOCS_URL =
-  "https://github.com/tmustier/pi-for-excel/blob/main/docs/install.md#oauth-logins-and-cors-proxy";
+  "https://github.com/produckx/pi-for-excel/blob/main/docs/install.md#oauth-logins-and-cors-proxy";
 
 export function normalizeProxyUrl(url: string): string {
   return url.trim().replace(/\/+$/, "");

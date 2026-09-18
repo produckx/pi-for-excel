@@ -21,7 +21,7 @@ These reflect current direction and may change as we prototype.
 ## Product semantics & scoping (workbooks, sessions, instructions)
 
 ### #31 — Design: multi-workbook semantics + per-workbook chats
-https://github.com/tmustier/pi-for-excel/issues/31
+https://github.com/produckx/pi-for-excel/issues/31
 
 **Status:** closed (2026-02-11).
 
@@ -35,7 +35,7 @@ Implemented for this phase:
 ---
 
 ### #23 — Sessions: session history UI + resume per workbook
-https://github.com/tmustier/pi-for-excel/issues/23
+https://github.com/produckx/pi-for-excel/issues/23
 
 **What it’s asking:** first-class session history UI + tie session metadata to workbook identity.
 
@@ -44,7 +44,7 @@ https://github.com/tmustier/pi-for-excel/issues/23
 ---
 
 ### #30 — Design: workbook-scoped agent instructions (AGENTS.md equivalent)
-https://github.com/tmustier/pi-for-excel/issues/30
+https://github.com/produckx/pi-for-excel/issues/30
 
 **What it’s asking:** a workbook-scoped instruction store (“conventions / do-don’t / assumptions”) with UI to edit + audit.
 
@@ -62,7 +62,7 @@ https://github.com/tmustier/pi-for-excel/issues/30
 ## Trust, safety, auditability
 
 ### #6 — UX: change approval UI + clickable cell citations
-https://github.com/tmustier/pi-for-excel/issues/6
+https://github.com/produckx/pi-for-excel/issues/6
 
 **Status:** closed (2026-02-12).
 
@@ -75,7 +75,7 @@ Resolved outcome:
 ---
 
 ### #28 — Auditability: diff view + audit log for agent changes
-https://github.com/tmustier/pi-for-excel/issues/28
+https://github.com/produckx/pi-for-excel/issues/28
 
 **Status:** closed (2026-02-12).
 
@@ -93,7 +93,7 @@ Delivered for this phase:
 ---
 
 ### #27 — Design: YOLO mode + workbook recovery/versioning strategy
-https://github.com/tmustier/pi-for-excel/issues/27
+https://github.com/produckx/pi-for-excel/issues/27
 
 **Status note:** rollback UX is now in place:
 - automatic backups for `write_cells`, `fill_formula`, `python_transform_range`, `format_cells` (with scoped limits), `conditional_format`, mutating `comments` actions, and all `modify_structure` actions (including value-preserving destructive deletes when capture fits recovery size limits)
@@ -111,7 +111,7 @@ https://github.com/tmustier/pi-for-excel/issues/27
 ---
 
 ### #62 — Security follow-up: sunset legacy OAuth localStorage migration path
-https://github.com/tmustier/pi-for-excel/issues/62
+https://github.com/produckx/pi-for-excel/issues/62
 
 **What it’s asking:** remove the remaining compatibility path for legacy OAuth `localStorage` migration.
 
@@ -126,7 +126,7 @@ https://github.com/tmustier/pi-for-excel/issues/62
 ## Context management
 
 ### #20 — Auto-compaction: manage context window budget for long conversations
-https://github.com/tmustier/pi-for-excel/issues/20
+https://github.com/produckx/pi-for-excel/issues/20
 
 **Status:** closed (2026-02-11).
 
@@ -145,7 +145,7 @@ Completed for this phase:
 ## Agent interface / platform design
 
 ### #14 — Design: agent interface — tools, system prompt, context strategy
-https://github.com/tmustier/pi-for-excel/issues/14
+https://github.com/produckx/pi-for-excel/issues/14
 
 **Status:** closed (2026-02-11) as an umbrella issue.
 
@@ -163,7 +163,7 @@ https://github.com/tmustier/pi-for-excel/issues/14
 ## Tools & Excel capability expansion
 
 ### #18 — Tool inventory: Excel JS API capabilities not yet exposed
-https://github.com/tmustier/pi-for-excel/issues/18
+https://github.com/produckx/pi-for-excel/issues/18
 
 **What it’s asking:** inventory + tiering / progressive disclosure for future tools.
 
@@ -174,7 +174,7 @@ https://github.com/tmustier/pi-for-excel/issues/18
 ---
 
 ### #22 — view_settings: expand with sheet visibility, standard width, and activate
-https://github.com/tmustier/pi-for-excel/issues/22
+https://github.com/produckx/pi-for-excel/issues/22
 
 **What it’s asking:** add actions:
 - hide/show/very-hide sheet
@@ -187,7 +187,7 @@ https://github.com/tmustier/pi-for-excel/issues/22
 ---
 
 ### #29 — Explainability: trace precedents/dependents + explain formula UX
-https://github.com/tmustier/pi-for-excel/issues/29
+https://github.com/produckx/pi-for-excel/issues/29
 
 **Status note:** explainability workflow is now in place:
 - `trace_dependencies` supports both directions (`mode: precedents|dependents`) with structured metadata and clickable, collapsible tree rendering
@@ -198,7 +198,7 @@ https://github.com/tmustier/pi-for-excel/issues/29
 ---
 
 ### #19 — Decide: integrate with Excel native Style API or keep our own style system
-https://github.com/tmustier/pi-for-excel/issues/19
+https://github.com/produckx/pi-for-excel/issues/19
 
 **What it’s asking:** decide between:
 - A) adopt native Excel styles
@@ -218,7 +218,7 @@ https://github.com/tmustier/pi-for-excel/issues/19
 ## External tools / bridges / extensibility
 
 ### #13 — Extensions API: design & build-out
-https://github.com/tmustier/pi-for-excel/issues/13
+https://github.com/produckx/pi-for-excel/issues/13
 
 **Status note:** MVP is now shipped (extension manager UI, dynamic loading, persisted registry, extension tool registration, lifecycle cleanup).
 
@@ -238,7 +238,7 @@ https://github.com/tmustier/pi-for-excel/issues/13
 ---
 
 ### #24 — Tools: enable web search + MCP integration
-https://github.com/tmustier/pi-for-excel/issues/24
+https://github.com/produckx/pi-for-excel/issues/24
 
 **Status:** closed (2026-02-12).
 
@@ -255,7 +255,7 @@ Delivered:
 ---
 
 ### #25 — Tools: Python runner + LibreOffice bridge
-https://github.com/tmustier/pi-for-excel/issues/25
+https://github.com/produckx/pi-for-excel/issues/25
 
 **Status:** closed (2026-02-12) via #78.
 
@@ -271,7 +271,7 @@ Delivered:
 ---
 
 ### #3 — Explore tmux tool via local bridge (Excel add-in)
-https://github.com/tmustier/pi-for-excel/issues/3
+https://github.com/produckx/pi-for-excel/issues/3
 
 **What it’s asking:** local helper for tmux/shell-like interaction.
 
@@ -280,7 +280,7 @@ https://github.com/tmustier/pi-for-excel/issues/3
 ---
 
 ### #32 — Artifacts: file upload + assistant workspace (create/share/edit files)
-https://github.com/tmustier/pi-for-excel/issues/32
+https://github.com/produckx/pi-for-excel/issues/32
 
 **What it’s asking:** a Files/Artifacts panel + tool surface (`list/read/write/delete`) + (optional) local workspace folder.
 
@@ -299,7 +299,7 @@ https://github.com/tmustier/pi-for-excel/issues/32
 ## UI polish
 
 ### #12 — UX: decide what to put in the header bar
-https://github.com/tmustier/pi-for-excel/issues/12
+https://github.com/produckx/pi-for-excel/issues/12
 
 **What it’s asking:** decide whether the header is used for session switcher, workbook indicator, settings, etc. or removed entirely.
 
@@ -308,7 +308,7 @@ https://github.com/tmustier/pi-for-excel/issues/12
 ---
 
 ### #21 — Show thinking duration: “Thought for Xm Xs” on completed thinking blocks
-https://github.com/tmustier/pi-for-excel/issues/21
+https://github.com/produckx/pi-for-excel/issues/21
 
 **What it’s asking:** per-thinking-block timing + DOM patching since the component is upstream.
 
@@ -319,7 +319,7 @@ https://github.com/tmustier/pi-for-excel/issues/21
 ## Conventions & configuration
 
 ### #1 — Decide where to store/expose spreadsheet conventions
-https://github.com/tmustier/pi-for-excel/issues/1
+https://github.com/produckx/pi-for-excel/issues/1
 
 **Status note:** Phase 1 is implemented (`src/conventions/*`, prompt now references named styles). Remaining scope is user-configurable + workbook-scoped.
 
@@ -330,7 +330,7 @@ https://github.com/tmustier/pi-for-excel/issues/1
 ## Distribution
 
 ### #16 — Distribution: non-technical install (hosted build + prod manifest)
-https://github.com/tmustier/pi-for-excel/issues/16
+https://github.com/produckx/pi-for-excel/issues/16
 
 **What it’s asking:** a path that requires no Node/mkcert/terminal.
 

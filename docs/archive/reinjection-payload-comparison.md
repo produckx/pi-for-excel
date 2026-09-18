@@ -221,7 +221,7 @@ Excel Mac loads the add-in from a **sideloaded manifest** stored at:
 
 This file is **separate from** the repo's `manifest.xml`. If local CSS/JS changes aren't appearing in the sidebar despite the Vite dev server running correctly:
 
-1. **Check the sideloaded manifest first.** It may point to a production URL (e.g. `https://pi-for-excel.vercel.app/…`) instead of `https://localhost:3000/…`.
+1. **Check the sideloaded manifest first.** It may point to a production URL (e.g. `https://pi-for-excel-beta.vercel.app/…`) instead of `https://localhost:3000/…`.
 2. Fix it by copying the repo manifest over: `cp manifest.xml ~/Library/Containers/com.microsoft.Excel/Data/Documents/wef/a1b2c3d4-e5f6-7890-abcd-ef1234567890.manifest.xml`
 3. Quit Excel fully and reopen.
 

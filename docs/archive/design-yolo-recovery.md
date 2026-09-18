@@ -1,6 +1,6 @@
 # Draft: YOLO workflow + workbook recovery (issue #27)
 
-Issue: https://github.com/tmustier/pi-for-excel/issues/27
+Issue: https://github.com/produckx/pi-for-excel/issues/27
 
 ## Goal
 

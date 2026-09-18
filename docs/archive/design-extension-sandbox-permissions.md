@@ -2,7 +2,7 @@
 
 > **Status:** Draft
 > **Last updated:** 2026-02-11
-> **Issue:** [#79](https://github.com/tmustier/pi-for-excel/issues/79)
+> **Issue:** [#79](https://github.com/produckx/pi-for-excel/issues/79)
 
 ## Overview
 
@@ -270,6 +270,6 @@ Prompt copy must stay explicit:
 - `src/extensions/runtime-manager.ts`
 - `src/extensions/store.ts`
 - `src/commands/builtins/extensions-overlay.ts`
-- [#13](https://github.com/tmustier/pi-for-excel/issues/13)
-- [#79](https://github.com/tmustier/pi-for-excel/issues/79)
-- [#80](https://github.com/tmustier/pi-for-excel/issues/80)
+- [#13](https://github.com/produckx/pi-for-excel/issues/13)
+- [#79](https://github.com/produckx/pi-for-excel/issues/79)
+- [#80](https://github.com/produckx/pi-for-excel/issues/80)

@@ -10,13 +10,13 @@ No coding or dev tools required — just download one file and add it to Excel.
 
 Download this file and save it somewhere you can find it (e.g. your Desktop):
 
-👉 **[manifest.prod.xml](https://pi-for-excel.vercel.app/manifest.prod.xml)**
+👉 **[manifest.prod.xml](https://pi-for-excel-beta.vercel.app/manifest.prod.xml)**
 
 <details>
 <summary>Alternate download links (if the above is unavailable)</summary>
 
-- Latest release: https://github.com/tmustier/pi-for-excel/releases/latest
-- Direct repo copy: https://github.com/tmustier/pi-for-excel/blob/main/manifest.prod.xml
+- Latest release: https://github.com/produckx/pi-for-excel/releases/latest
+- Direct repo copy: https://github.com/produckx/pi-for-excel/blob/main/manifest.prod.xml
 
 </details>
 

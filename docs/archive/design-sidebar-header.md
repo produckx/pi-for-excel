@@ -1,6 +1,6 @@
 # Design: Sidebar Header Chrome
 
-> **Related issues:** [#12](https://github.com/tmustier/pi-for-excel/issues/12)
+> **Related issues:** [#12](https://github.com/produckx/pi-for-excel/issues/12)
 > **Status:** Implemented (V1)
 > **Last updated:** 2026-02-11
 

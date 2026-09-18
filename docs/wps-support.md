@@ -96,7 +96,7 @@ https://localhost:3141/src/taskpane.html
 The production placeholder matches the Office production manifest:
 
 ```text
-https://pi-for-excel.vercel.app/src/taskpane.html
+https://pi-for-excel-beta.vercel.app/src/taskpane.html
 ```
 
 For packaging, set/replace `PI_WPS_TASKPANE_URL` (or patch the constant in

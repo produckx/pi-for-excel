@@ -62,7 +62,7 @@ Pi for Excel is an AI agent that lives inside Excel. It reads your workbook, mak
 
 ## Install
 
-1. Download [`manifest.prod.xml`](https://pi-for-excel.vercel.app/manifest.prod.xml)
+1. Download [`manifest.prod.xml`](https://pi-for-excel-beta.vercel.app/manifest.prod.xml)
 2. Add it to Excel — see [**install guide**](docs/install.md) for step-by-step instructions (macOS + Windows)
 3. Click **Open Pi** in the ribbon
 4. Connect a provider (API key or OAuth), or configure a custom OpenAI-compatible gateway in `/settings`
@@ -78,7 +78,7 @@ Pi for Excel is an AI agent that lives inside Excel. It reads your workbook, mak
 ### Setup
 
 ```bash
-git clone https://github.com/tmustier/pi-for-excel.git
+git clone https://github.com/produckx/pi-for-excel.git
 cd pi-for-excel
 npm install
 

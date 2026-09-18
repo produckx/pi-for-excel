@@ -1,6 +1,6 @@
 # Design: Session Resume + Tab Recovery UX
 
-> **Related issues:** [#23](https://github.com/tmustier/pi-for-excel/issues/23), [#31](https://github.com/tmustier/pi-for-excel/issues/31), [#12](https://github.com/tmustier/pi-for-excel/issues/12)
+> **Related issues:** [#23](https://github.com/produckx/pi-for-excel/issues/23), [#31](https://github.com/produckx/pi-for-excel/issues/31), [#12](https://github.com/produckx/pi-for-excel/issues/12)
 > **Status:** Draft
 > **Last updated:** 2026-02-11
 

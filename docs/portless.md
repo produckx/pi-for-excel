@@ -6,7 +6,7 @@ manifest, sideload docs, and CI assume. Use this page only if you want the
 [portless](https://portless.sh) flavor: a stable named URL
 (`https://pi-excel.localhost`) with no mkcert step and no fixed port.
 
-Tracking issue: [#586](https://github.com/tmustier/pi-for-excel/issues/586).
+Tracking issue: [#586](https://github.com/produckx/pi-for-excel/issues/586).
 
 ## What portless does
 
